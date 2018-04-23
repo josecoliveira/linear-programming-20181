@@ -6,7 +6,7 @@ setup(
     packages=[''],
     url='',
     license='',
-    author='joseoliveira',
-    author_email='',
+    author='José Oliveira',
+    author_email='josecarlosdeoliveirajr@gmail.com',
     description='', install_requires=['numpy']
 )
