@@ -33,34 +33,56 @@ class Pl:
         return string
 
     @property
-    def get_num_variables(self) -> int:
+    def num_variables(self) -> int:
         return self.a.shape[1]
 
     @property
-    def get_num_restrictions(self) -> int:
+    def num_restrictions(self) -> int:
         return self.a.shape[0]
 
+    @property
+    def minus_c_from_tableau(self) -> np.matrixlib.defmatrix.matrix:
+        return self.tableau[0, self.num_restrictions:self.num_restrictions + self.num_variables]
+
+    @property
+    def objective_value(self) -> int:
+        return self.tableau[0: -1]
+
+    @property
+    def matrix_operations(self) -> np.matrixlib.defmatrix.matrix:
+        return self.tableau[1:1 + self.num_restrictions, 0:self.num_restrictions]
+
+    @property
+    def a_from_tableau(self) -> np.matrixlib.defmatrix.matrix:
+        return self.tableau[1:self.num_variables,
+               self.num_restrictions:self.num_restrictions + self.num_variables]
+
+    @property
+    def b_from_tableau(self) -> np.matrixlib.defmatrix.matrix:
+        return np.matrix(self.tableau[1:, -1])
+
     def __make_tableau(self):
-        rows = self.get_num_restrictions + 1
-        columns = self.get_num_restrictions + self.get_num_variables + self.get_num_restrictions + 1
-        tableau = np.zeros((rows, columns))
-        tableau: np.matrixlib.defmatrix.matrix = tableau.astype('object')
+        rows = self.num_restrictions + 1
+        columns = self.num_restrictions + self.num_variables + self.num_restrictions + 1
+        tableau: np.matrixlib.defmatrix.matrix = np.matrix(np.zeros((rows, columns))).astype('object')
+        print(type(tableau))
+        print(tableau)
         for i in range(rows):
             for j in range(columns):
                 tableau[i, j] = Fraction(tableau[i, j])
-        identity = np.identity(self.get_num_restrictions)
+        identity = np.identity(self.num_restrictions)
         identity = identity.astype('object')
-        for i in range(self.get_num_restrictions):
-            for j in range(self.get_num_restrictions):
+        for i in range(self.num_restrictions):
+            for j in range(self.num_restrictions):
                 identity[i, j] = Fraction(identity[i, j])
-        tableau[1:self.get_num_restrictions + 1, 0:self.get_num_restrictions] = identity
-        tableau[1:self.get_num_restrictions + 1,
-        self.get_num_restrictions:self.get_num_restrictions + self.get_num_variables] = self.a
-        tableau[1:self.get_num_restrictions + 1,
-        self.get_num_restrictions + self.get_num_variables:2 * self.get_num_restrictions + self.get_num_variables] = identity
-        tableau[1:self.get_num_restrictions + 1,
-        2 * self.get_num_restrictions + self.get_num_variables:3 * self.get_num_restrictions + self.get_num_variables] = self.b
-        tableau[0, self.get_num_restrictions:self.get_num_restrictions + self.get_num_variables] = self.cT
+        tableau[1:self.num_restrictions + 1, 0:self.num_restrictions] = identity
+        tableau[1:self.num_restrictions + 1,
+        self.num_restrictions:self.num_restrictions + self.num_variables] = self.a
+        tableau[1:self.num_restrictions + 1,
+        self.num_restrictions + self.num_variables:2 * self.num_restrictions + self.num_variables] = identity
+        tableau[1:self.num_restrictions + 1,
+        2 * self.num_restrictions + self.num_variables:3 * self.num_restrictions + self.num_variables] = self.b
+        tableau[0, self.num_restrictions:self.num_restrictions + self.num_variables] = self.cT
         self.tableau = tableau
 
     @staticmethod
@@ -72,33 +94,22 @@ class Pl:
 
     def simplex(self):
         print(self.__to_string_matrix_with_fractions(self.tableau))
+        print(self.__to_string_matrix_with_fractions(self.b_from_tableau))
 
 
 def main():
     input_file = open(sys.argv[1], 'r')
     lines = int(input_file.readline().replace("\n", ""))
     columns = int(input_file.readline().replace("\n", ""))
-    stringMatrix = input_file.readline().replace("\n", "")
-    matrix = json.loads(stringMatrix)
+    string_matrix = input_file.readline().replace("\n", "")
+    matrix = json.loads(string_matrix)
 
     matrix = convert_matrix_to_fractions(matrix)
-    print(matrix)
 
     pl = Pl(matrix)
-    # print(pl.cT)
-
-    # print(pl.getNumVariables())
-
-    # for x in range(pl.get_num_restrictions):
-    #     for y in range(pl.get_num_variables):
-    #         print(str(x) + ", " + str(y) + ": " + str(pl.a[x, y]))
-    #
-    # pl = Pl(matrix)
-    # pl.simplex()
+    pl.simplex()
 
     input_file.close()
-
-    # x = np.matrix
 
 
 if __name__ == "__main__":
