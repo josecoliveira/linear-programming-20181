@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a0716b11-d2e7-454c-b99d-dcee3a937049" name="Default" comment="Dual simplex not tested.">
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/examples.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="a0716b11-d2e7-454c-b99d-dcee3a937049" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/examples.txt" beforeDir="false" afterPath="$PROJECT_DIR$/examples.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/input.txt" beforeDir="false" afterPath="$PROJECT_DIR$/input.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/simplex.py" beforeDir="false" afterPath="$PROJECT_DIR$/simplex.py" afterDir="false" />
     </list>
@@ -17,11 +15,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="simplex.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="simplex.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/simplex.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4080">
-              <caret line="287" selection-start-line="287" selection-end-line="287" />
+            <state relative-caret-position="371">
+              <caret line="294" column="61" lean-forward="true" selection-start-line="294" selection-start-column="61" selection-end-line="294" selection-end-column="61" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
               </folding>
@@ -29,11 +27,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="input.txt" pinned="false" current-in-tab="true">
+      <file leaf-file-name="input.txt" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/input.txt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="45">
-              <caret line="3" lean-forward="true" selection-start-line="3" selection-end-line="3" />
+            <state relative-caret-position="30">
+              <caret line="2" column="55" selection-start-line="2" selection-start-column="55" selection-end-line="2" selection-end-column="55" />
             </state>
           </provider>
         </entry>
@@ -41,8 +39,8 @@
       <file leaf-file-name="examples.txt" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/examples.txt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="120">
-              <caret line="8" column="17" selection-start-line="8" selection-start-column="17" selection-end-line="8" selection-end-column="17" />
+            <state relative-caret-position="45">
+              <caret line="3" column="23" selection-start-line="3" selection-start-column="23" selection-end-line="3" selection-end-column="23" />
             </state>
           </provider>
         </entry>
@@ -73,6 +71,10 @@
       <find>impossible</find>
       <find>self.num_variables + self.num_restrictions</find>
       <find>:</find>
+      <find>np.zeros</find>
+      <find>identity_</find>
+      <find>Fractions</find>
+      <find>Fraction(</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -82,9 +84,9 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/setup.py" />
-        <option value="$PROJECT_DIR$/simplex.py" />
-        <option value="$PROJECT_DIR$/examples.txt" />
         <option value="$PROJECT_DIR$/input.txt" />
+        <option value="$PROJECT_DIR$/examples.txt" />
+        <option value="$PROJECT_DIR$/simplex.py" />
       </list>
     </option>
   </component>
@@ -181,20 +183,28 @@
       <option name="project" value="LOCAL" />
       <updated>1524584421585</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Primal simplex done. Heavy changes and refactorings. Primal simplex with auxiliary started.">
+      <created>1525386972612</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1525386972612</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="1366" y="0" width="1920" height="1080" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="1" sideWeight="0.3402556" visible="true" weight="0.14602003" />
+      <window_info content_ui="combo" id="Project" order="1" sideWeight="0.34" visible="true" weight="0.14602003" />
       <window_info anchor="bottom" id="TODO" order="10" />
       <window_info anchor="bottom" id="Event Log" order="2" sideWeight="0.50038373" side_tool="true" weight="0.34415585" />
       <window_info anchor="bottom" id="Find" order="5" weight="0.32715008" />
-      <window_info active="true" anchor="bottom" id="Version Control" order="3" visible="true" weight="0.32976446" />
-      <window_info anchor="bottom" id="Python Console" order="0" weight="0.3288364" />
-      <window_info anchor="bottom" id="Run" order="6" sideWeight="0.49961627" weight="0.30406854" />
-      <window_info id="Structure" order="2" sideWeight="0.6597444" side_tool="true" visible="true" weight="0.14602003" />
+      <window_info anchor="bottom" id="Version Control" order="3" weight="0.32976446" />
+      <window_info anchor="bottom" id="Python Console" order="0" weight="0.32869378" />
+      <window_info active="true" anchor="bottom" id="Run" order="6" sideWeight="0.49961627" visible="true" weight="0.30406854" />
+      <window_info id="Structure" order="2" sideWeight="0.66" side_tool="true" visible="true" weight="0.14602003" />
       <window_info anchor="bottom" id="Terminal" order="1" weight="0.32655245" />
       <window_info id="Favorites" order="0" side_tool="true" />
       <window_info anchor="bottom" id="Debug" order="7" weight="0.39629006" />
@@ -217,7 +227,8 @@
     <MESSAGE value="Class Pl started." />
     <MESSAGE value="Tableau properties." />
     <MESSAGE value="Dual simplex not tested." />
-    <option name="LAST_COMMIT_MESSAGE" value="Dual simplex not tested." />
+    <MESSAGE value="Primal simplex done. Heavy changes and refactorings. Primal simplex with auxiliary started." />
+    <option name="LAST_COMMIT_MESSAGE" value="Primal simplex done. Heavy changes and refactorings. Primal simplex with auxiliary started." />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />
@@ -543,25 +554,25 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/examples.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="8" column="17" selection-start-line="8" selection-start-column="17" selection-end-line="8" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/simplex.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4080">
-          <caret line="287" selection-start-line="287" selection-end-line="287" />
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="45">
+          <caret line="3" column="23" selection-start-line="3" selection-start-column="23" selection-end-line="3" selection-end-column="23" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/input.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="45">
-          <caret line="3" lean-forward="true" selection-start-line="3" selection-end-line="3" />
+        <state relative-caret-position="30">
+          <caret line="2" column="55" selection-start-line="2" selection-start-column="55" selection-end-line="2" selection-end-column="55" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/simplex.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="371">
+          <caret line="294" column="61" lean-forward="true" selection-start-line="294" selection-start-column="61" selection-end-line="294" selection-end-column="61" />
+          <folding>
+            <element signature="e#0#11#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

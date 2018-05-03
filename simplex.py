@@ -62,6 +62,40 @@ class LinearProgramming:
         return string
 
     @staticmethod
+    def __zeros_matrix(rows, columns):
+        """
+        Create a Numpy matrix with zeros and fractions.
+        :param rows: Number os rows
+        :type rows: int
+        :param columns: Number of columns
+        :type columns: int
+        :return: A Numpy matrix with zeros
+        :rtype: np.matrixlib.defmatrix.matrix
+        """
+        matrix = np.matrix(np.zeros((rows, columns))).astype('object')
+        for row in range(rows):
+            for column in range(columns):
+                matrix[row, column] = Fraction(matrix[row, column])
+        return matrix
+
+    @staticmethod
+    def __identity_matrix(size):
+        """
+        Create a identity Numpy matrix with fractions.
+        :param size: Number of rows and columns of the matrix.
+        :type size: int
+        :return: A identity numpy matrix with fractions.
+        :rtype: np.matrixlib.defmatrix.matrix
+        """
+        identity = np.identity(size)
+        identity = identity.astype('object')
+        for row in range(size):
+            for column in range(size):
+                identity[row, column] = Fraction(identity[row, column])
+        return identity
+
+
+    @staticmethod
     def to_string_vector_with_fractions(matrix: np.matrixlib.defmatrix.matrix) -> str:
         string = "["
         for i in range(matrix.shape[1]):
@@ -99,9 +133,7 @@ class LinearProgramming:
         :return: A Numpy matrix in array form with the solution.
         :rtype: np.matrixlib.defmatrix.matrix
         """
-        solution = np.matrix(np.zeros((1, self.num_variables_from_tableau))).astype('object')
-        for i in range(self.num_variables_from_tableau):
-            solution[0, i] = Fraction(solution[0, i])
+        solution = self.__zeros_matrix(1, self.num_variables_from_tableau)
         for i in range(self.num_restrictions):
             solution[0, self.base[i]] = self.b_from_tableau[i, 0]
         return solution
@@ -115,15 +147,8 @@ class LinearProgramming:
         """
         rows = self.num_restrictions + 1
         columns = self.num_restrictions + self.num_variables_from_tableau + 1
-        tableau = np.matrix(np.zeros((rows, columns))).astype('object')
-        for i in range(rows):
-            for j in range(columns):
-                tableau[i, j] = Fraction(tableau[i, j])
-        identity = np.identity(self.num_restrictions)
-        identity = identity.astype('object')
-        for i in range(self.num_restrictions):
-            for j in range(self.num_restrictions):
-                identity[i, j] = Fraction(identity[i, j])
+        tableau = self.__zeros_matrix(rows, columns)
+        identity = self.__identity_matrix(self.num_restrictions)
 
         # Operations matrix
         tableau[1:self.num_restrictions + 1, 0:self.num_restrictions] = identity
@@ -170,9 +195,7 @@ class LinearProgramming:
         :type problematic_column: int
         :return: None
         """
-        certificate = np.matrix(np.zeros((1, self.num_variables_from_tableau))).astype('object')
-        for i in range(self.num_variables_from_tableau):
-            certificate[0, i] = Fraction(certificate[0, i])
+        certificate = self.__zeros_matrix(1, self.num_variables_from_tableau)
         certificate[0, problematic_column] = 1
         for i in range(self.num_restrictions):
             certificate[0, self.base[i]] = - self.a_from_tableau[i, problematic_column]
@@ -253,12 +276,23 @@ class LinearProgramming:
     @property
     def __primal_simplex_by_auxiliary(self):
         print("By Auxiliary")
+
+        # Remove non-negativity of restrictions.
         for row in range(self.num_restrictions):
             if self.b_from_tableau[row, 0] < 0:
                 self.tableau[1 + row] = -self.tableau[1 + row]
+
+        new_ct = self.__zeros_matrix(1, self.num_variables_from_tableau + self.num_restrictions)
+        for column in range(self.num_restrictions):
+            new_ct[0, self.num_variables_from_tableau + column] = Fraction(1, 1)
+
+        # new_a = np.matrix(np.zeros(self.num_restrictions))
+
         print(self.__to_string_matrix_with_fractions(self.tableau))
         print(self.__to_string_matrix_with_fractions(self.a_from_tableau))
         print(self.__to_string_matrix_with_fractions(self.b_from_tableau))
+        print(self.__to_string_matrix_with_fractions(self.minus_ct_from_tableau))
+        print(self.__to_string_matrix_with_fractions(new_ct))
         return -2
 
     @property
