@@ -118,7 +118,7 @@ class LinearProgramming:
 
     @property
     def a_from_tableau(self) -> np.matrixlib.defmatrix.matrix:
-        return self.tableau[1:self.num_variables,
+        return self.tableau[1:1 + self.num_restrictions,
                self.num_restrictions:self.num_restrictions + self.num_variables_from_tableau]
 
     @property
@@ -212,7 +212,7 @@ class LinearProgramming:
     def __dual_simplex(self):
         """
         Perform dual simplex.
-        :return: Objective value if found or -1 if the linear programming is infeasible or unlimited.
+        :return: Objective value if found or None if it is infeasible or unlimited.
         :rtype: int
         """
         while True:
@@ -234,11 +234,12 @@ class LinearProgramming:
     def __primal_simplex(self):
         """
         Perform primal simplex.
-        :return: Objective value if found or -1 if the linear programming is unlimited.
+        :return: Objective value if found or None if it is unlimited.
         :rtype: int
         """
         for column in range(len(self.basis)):
             self.__pivot_tableau(column, self.basis[column])
+
         while True:
             is_optimal = True
 
@@ -272,7 +273,12 @@ class LinearProgramming:
 
     @property
     def __primal_simplex_by_auxiliary(self):
-
+        """
+        Build a instance of a linear programming to find a basis for original linear programing. Then perform primal
+        simplex.
+        :return: Objective value if found or none if it is unlimited or infeasible.
+        :rtype: int
+        """
         # Remove non-negativity of restrictions.
         for row in range(self.num_restrictions):
             if self.b_from_tableau[row, 0] < 0:
@@ -285,7 +291,9 @@ class LinearProgramming:
 
         # Create new A for auxiliary
         new_a = self.__zeros_matrix(self.num_restrictions, self.num_variables_from_tableau + self.num_restrictions)
+
         new_a[0:self.num_restrictions, 0:self.num_variables_from_tableau] = self.a_from_tableau
+
         new_a[0:self.num_variables_from_tableau,
         self.num_variables_from_tableau:self.num_variables_from_tableau + self.num_restrictions] = self.__identity_matrix(
             self.num_restrictions)
@@ -317,6 +325,7 @@ class LinearProgramming:
         :return: Objective value if found or -1 if the linear programming is infeasible or unlimited.
         :rtype: int
         """
+        print(self.__to_string_matrix_with_fractions(self.tableau))
         if any(self.b_from_tableau[i, 0] < 0 for i in range(self.num_restrictions)) and all(
                 self.minus_ct_from_tableau[0, i] >= 0 for i in range(self.num_variables_from_tableau)):
             return self.__dual_simplex

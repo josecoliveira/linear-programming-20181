@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a0716b11-d2e7-454c-b99d-dcee3a937049" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples.txt" beforeDir="false" afterPath="$PROJECT_DIR$/examples.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/input.txt" beforeDir="false" afterPath="$PROJECT_DIR$/input.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/simplex.py" beforeDir="false" afterPath="$PROJECT_DIR$/simplex.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -14,14 +14,14 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.57839507">
+    <splitter split-orientation="horizontal" split-proportion="0.4960464">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file leaf-file-name="simplex.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/simplex.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="169">
-                  <caret line="281" column="14" selection-start-line="281" selection-start-column="14" selection-end-line="281" selection-end-column="14" />
+                <state relative-caret-position="856">
+                  <caret line="280" column="11" selection-start-line="280" selection-start-column="11" selection-end-line="280" selection-end-column="11" />
                   <folding>
                     <element signature="e#0#11#0" expanded="true" />
                   </folding>
@@ -32,8 +32,8 @@
           <file leaf-file-name="examples.txt" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/examples.txt">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="45">
-                  <caret line="3" column="11" selection-start-line="3" selection-start-column="11" selection-end-line="3" selection-end-column="11" />
+                <state relative-caret-position="195">
+                  <caret line="13" column="32" selection-start-line="13" selection-start-column="32" selection-end-line="13" selection-end-column="32" />
                 </state>
               </provider>
             </entry>
@@ -51,11 +51,11 @@
       </split-first>
       <split-second>
         <leaf>
-          <file leaf-file-name="simplex.py" pinned="false" current-in-tab="true">
+          <file leaf-file-name="simplex.py" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/simplex.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="208">
-                  <caret line="310" column="42" selection-start-line="310" selection-start-column="42" selection-end-line="310" selection-end-column="42" />
+                <state relative-caret-position="973">
+                  <caret line="318" column="42" selection-start-line="318" selection-start-column="42" selection-end-line="318" selection-end-column="42" />
                   <folding>
                     <element signature="e#0#11#0" expanded="true" />
                   </folding>
@@ -63,11 +63,11 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="input.txt" pinned="false" current-in-tab="false">
+          <file leaf-file-name="input.txt" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/input.txt">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="30">
-                  <caret line="2" column="28" selection-start-line="2" selection-start-column="28" selection-end-line="2" selection-end-column="28" />
+                <state>
+                  <caret selection-end-line="2" selection-end-column="63" />
                 </state>
               </provider>
             </entry>
@@ -94,11 +94,11 @@
       <find>identity_</find>
       <find>Fractions</find>
       <find>Fraction(</find>
-      <find>range(len</find>
       <find>__primal</find>
       <find>__primal_simplex</find>
       <find>primal_simplex</find>
       <find>simplex</find>
+      <find>range(len</find>
       <find>print</find>
     </findStrings>
   </component>
@@ -222,17 +222,17 @@
     <frame x="1366" y="0" width="1920" height="1080" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="1" sideWeight="0.33971292" visible="true" weight="0.14602003" />
+      <window_info content_ui="combo" id="Project" order="1" sideWeight="0.33971292" weight="0.14602003" />
       <window_info anchor="bottom" id="TODO" order="10" />
       <window_info anchor="bottom" id="Event Log" order="2" sideWeight="0.50038373" side_tool="true" weight="0.34415585" />
       <window_info anchor="bottom" id="Find" order="5" weight="0.32655245" />
       <window_info anchor="bottom" id="Version Control" order="3" weight="0.32976446" />
-      <window_info anchor="bottom" id="Python Console" order="0" visible="true" weight="0.32869378" />
+      <window_info anchor="bottom" id="Python Console" order="0" weight="0.32869378" />
       <window_info active="true" anchor="bottom" x="0" y="71" width="1366" height="697" id="Run" order="6" sideWeight="0.49961627" type="WINDOWED" visible="true" weight="0.30406854" />
-      <window_info id="Structure" order="2" sideWeight="0.6602871" side_tool="true" visible="true" weight="0.14602003" />
+      <window_info id="Structure" order="2" sideWeight="0.6602871" side_tool="true" weight="0.14602003" />
       <window_info anchor="bottom" id="Terminal" order="1" weight="0.32655245" />
       <window_info id="Favorites" order="0" side_tool="true" />
-      <window_info anchor="bottom" id="Debug" order="7" weight="0.3961456" />
+      <window_info anchor="bottom" id="Debug" order="7" visible="true" weight="0.3961456" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -260,7 +260,7 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="18" />
+      <option name="time" value="19" />
     </breakpoint-manager>
     <watches-manager>
       <configuration name="PythonConfigurationType">
@@ -293,12 +293,27 @@
     </expressions>
     <expressions id="evaluateExpression">
       <expression>
-        <expression-string>self.basis</expression-string>
+        <expression-string>self.tableau[1:1+ self.num_restrictions]</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>self.tableau[1:self.num_restrictions]</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
         <expression-string>self.tableau</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>self.num_restrictions</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>self.basis</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
@@ -324,21 +339,6 @@
       </expression>
       <expression>
         <expression-string>solution[0, 4]</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>solution[0, 2]</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>solution[0, 5]</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>solution[0, 1]</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
@@ -599,24 +599,24 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/examples.txt">
+    <entry file="file://$PROJECT_DIR$/input.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="45">
-          <caret line="3" column="11" selection-start-line="3" selection-start-column="11" selection-end-line="3" selection-end-column="11" />
+        <state>
+          <caret selection-end-line="2" selection-end-column="63" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/input.txt">
+    <entry file="file://$PROJECT_DIR$/examples.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="30">
-          <caret line="2" column="28" selection-start-line="2" selection-start-column="28" selection-end-line="2" selection-end-column="28" />
+        <state relative-caret-position="195">
+          <caret line="13" column="32" selection-start-line="13" selection-start-column="32" selection-end-line="13" selection-end-column="32" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/simplex.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="169">
-          <caret line="281" column="14" selection-start-line="281" selection-start-column="14" selection-end-line="281" selection-end-column="14" />
+        <state relative-caret-position="856">
+          <caret line="280" column="11" selection-start-line="280" selection-start-column="11" selection-end-line="280" selection-end-column="11" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
           </folding>
