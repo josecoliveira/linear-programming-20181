@@ -16,43 +16,16 @@ def convert_matrix_to_fractions(matrix: np.matrixlib.defmatrix.matrix) -> np.mat
 
 class LinearProgramming:
 
-    def __init__(self, matrix: np.matrixlib.defmatrix.matrix = None, ct=None, a=None, b=None, fpi=False, basis=None):
-        if matrix is not None:
-            self.ct = matrix[0, 0:-1]
-            self.a = matrix[1:, 0:-1]
-            self.b = matrix[1:, -1]
-        elif ct is not None and a is not None and b is not None:
-            self.ct = ct
-            self.a = a
-            self.b = b
-        self.num_variables = self.a.shape[1]
-        self.num_restrictions = self.a.shape[0]
-        if fpi and basis is not None:
-            self.num_variables_from_tableau = self.num_variables
-            self.__make_tableau(gap=False)
-            self.basis = basis
-            for i in range(len(self.basis)):
-                self.__pivot_tableau(i, self.basis[i])
-        else:
-            self.num_variables_from_tableau = self.num_variables + self.num_restrictions
-            self.__make_tableau(gap=True)
-            self.__init_basis()
-
-        self.infeasible = False
-        self.unlimited = False
-
-    def __init_basis(self):
-        self.basis = []
-        for i in range(self.num_restrictions):
-            self.basis.append(self.num_variables_from_tableau - self.num_restrictions + i)
-
-    def __init_basis_fpi(self):
-        self.basis = []
-        for i in range(self.num_restrictions):
-            self.basis.append(self.num_variables - self.num_restrictions + i)
-
     @staticmethod
-    def __to_string_matrix_with_fractions(matrix: np.matrixlib.defmatrix.matrix) -> str:
+    def __to_string_matrix_with_fractions(matrix):
+        """
+        Create a string with all values on the matrix. Each row is separated by a new line and each value is separated
+        by a space.
+        :param matrix: Numpy matrix.
+        :type matrix: np.matrixlib.defmatrix.matrix
+        :return: String representing the matrix.
+        :rtype: str
+        """
         string = ""
         for i in range(matrix.shape[0]):
             for j in range(matrix.shape[1]):
@@ -62,14 +35,31 @@ class LinearProgramming:
         return string
 
     @staticmethod
+    def to_string_vector_with_fractions(matrix):
+        """
+        Create a string with all values on the vector. Each value is separated by comma and space.
+        :param matrix: Numpy matrix with only one row.
+        :type matrix: np.matrixlib.defmatrix.matrix
+        :return: String representing the vector.
+        :rtype: str
+        """
+        string = "["
+        for i in range(matrix.shape[1]):
+            string += str(matrix[0, i].numerator) + "/" + str(matrix[0, i].denominator)
+            if i is not matrix.shape[1] - 1:
+                string += ", "
+        string += "]"
+        return string
+
+    @staticmethod
     def __zeros_matrix(rows, columns):
         """
         Create a Numpy matrix with zeros and fractions.
-        :param rows: Number os rows
+        :param rows: Number os rows.
         :type rows: int
-        :param columns: Number of columns
+        :param columns: Number of columns.
         :type columns: int
-        :return: A Numpy matrix with zeros
+        :return: A Numpy matrix with zeros.
         :rtype: np.matrixlib.defmatrix.matrix
         """
         matrix = np.matrix(np.zeros((rows, columns))).astype('object')
@@ -95,47 +85,93 @@ class LinearProgramming:
         return identity
 
     @staticmethod
-    def to_string_vector_with_fractions(matrix: np.matrixlib.defmatrix.matrix) -> str:
-        string = "["
-        for i in range(matrix.shape[1]):
-            string += str(matrix[0, i].numerator) + "/" + str(matrix[0, i].denominator)
-            if i is not matrix.shape[1] - 1:
-                string += " "
-        string += "]"
-        return string
-
-    @property
-    def minus_ct_from_tableau(self) -> np.matrixlib.defmatrix.matrix:
-        return self.tableau[0, self.num_restrictions:self.num_restrictions + self.num_variables_from_tableau]
-
-    @property
-    def objective_value(self) -> int:
-        return self.tableau[0, -1]
-
-    @property
-    def operations_matrix(self) -> np.matrixlib.defmatrix.matrix:
-        return self.tableau[1:1 + self.num_restrictions, 0:self.num_restrictions]
-
-    @property
-    def a_from_tableau(self) -> np.matrixlib.defmatrix.matrix:
-        return self.tableau[1:1 + self.num_restrictions,
-               self.num_restrictions:self.num_restrictions + self.num_variables_from_tableau]
-
-    @property
-    def b_from_tableau(self) -> np.matrixlib.defmatrix.matrix:
-        return np.matrix(self.tableau[1:, -1])
-
-    @property
-    def solution(self):
+    def __pivot_matrix(matrix, row, column):
         """
-        Make a solution from tableau and basis.
-        :return: A Numpy matrix in array form with the solution.
-        :rtype: np.matrixlib.defmatrix.matrix
+        Pivot a Numpy matrix using Gaussian elimination.
+        :param matrix: Numpy matrix to be pivoted.
+        :type matrix: np.matrixlib.defmatrix.matrix
+        :param row: Row to be pivoted.
+        :type row: int
+        :param column: Column to be pivoted.
+        :type column: int
+        :return: None.
         """
-        solution = self.__zeros_matrix(1, self.num_variables_from_tableau)
+        matrix[row] = matrix[row] / matrix[row, column]
+        for i in range(matrix.shape[0]):
+            if i != row:
+                matrix[i] = matrix[i] - matrix[i, column] * matrix[row]
+
+    def __init__(self, matrix: np.matrixlib.defmatrix.matrix = None, ct=None, a=None, b=None, fpi=False, basis=None):
+        """
+        Constructor for Linear Programing. It can be instantiate with a Numpy matrix with Fraction in the following
+        form:
+
+        | c^T 0 |
+        |  A  b |
+
+        corresponding to
+
+        max c^T x
+        s.t Ax <= b
+            x >= 0.
+
+        :param matrix: Numpy matrix represented like above-mentioned form.
+        :type matrix: np.matrixlib.defmatrix.matrix
+        :param ct: Numpy matrix representing c^T
+        :type ct: np.matrixlib.defmatrix.matrix
+        :param a: Numpy matrix representing A
+        :type a: np.matrixlib.defmatrix.matrix
+        :param b: Numpy matrix representing b
+        :type b: np.matrixlib.defmatrix.matrix
+        :param fpi: True whether LP is in standard form of equalities or false otherwise.
+        :type fpi: bool
+        :param basis: Array representing where the positions on A the basis are, if it is needed.
+        :type basis: list
+        """
+        if matrix is not None:
+            self.ct = matrix[0, 0:-1]
+            self.a = matrix[1:, 0:-1]
+            self.b = matrix[1:, -1]
+        elif ct is not None and a is not None and b is not None:
+            self.ct = ct
+            self.a = a
+            self.b = b
+        self.num_variables = self.a.shape[1]
+        self.num_restrictions = self.a.shape[0]
+        if fpi and basis is not None:
+            self.num_variables_from_tableau = self.num_variables
+            self.__make_tableau(gap=False)
+            self.basis = basis
+            for i in range(len(self.basis)):
+                self.__pivot_tableau(i, self.basis[i])
+        else:
+            self.num_variables_from_tableau = self.num_variables + self.num_restrictions
+            self.__make_tableau(gap=True)
+            self.__init_basis()
+
+        self.infeasible = False
+        self.unlimited = False
+
+    def __init_basis(self):
+        """
+        Create a array representing where the positions on A the base are.
+        :return: Array with basis.
+        :rtype: list
+        """
+        self.basis = []
         for i in range(self.num_restrictions):
-            solution[0, self.basis[i]] = self.b_from_tableau[i, 0]
-        return solution
+            self.basis.append(self.num_variables_from_tableau - self.num_restrictions + i)
+
+    def __init_basis_fpi(self):
+        """
+        Create a array representing where the positions on A the base are in case of performing primal simplex with
+        auxiliary linear programming.
+        :return: Array with basis.
+        :rtype: list
+        """
+        self.basis = []
+        for i in range(self.num_restrictions):
+            self.basis.append(self.num_variables - self.num_restrictions + i)
 
     def __make_tableau(self, gap):
         """
@@ -169,26 +205,62 @@ class LinearProgramming:
 
         self.tableau = tableau
 
-    @staticmethod
-    def __pivot_matrix(matrix, row, column):
+    @property
+    def minus_ct_from_tableau(self):
         """
-        Pivot a Numpy matrix using Gaussian elimination.
-        :param matrix: Numpy matrix to be pivoted.
-        :type matrix: np.matrixlib.defmatrix.matrix
-        :param row: Row to be pivoted
-        :type row: int
-        :param column: Column to be pivoted
-        :type column: int
-        :return: None
+        :return: Submatrix from tableau with -c^T.
+        :rtype: np.matrixlib.defmatrix.matrix
         """
-        matrix[row] = matrix[row] / matrix[row, column]
-        for i in range(matrix.shape[0]):
-            if i != row:
-                matrix[i] = matrix[i] - matrix[i, column] * matrix[row]
+        return self.tableau[0, self.num_restrictions:self.num_restrictions + self.num_variables_from_tableau]
+
+    @property
+    def objective_value(self):
+        """
+        :return: Objective value from tableau.
+        :rtype: int
+        """
+        return self.tableau[0, -1]
+
+    @property
+    def operations_matrix(self):
+        """
+        :return: Submatrix from tableau with operations matrix.
+        :rtype: np.matrixlib.defmatrix.matrix
+        """
+        return self.tableau[1:1 + self.num_restrictions, 0:self.num_restrictions]
+
+    @property
+    def a_from_tableau(self):
+        """
+        :return: Submatrix from tableau with A.
+        :rtype: np.matrixlib.defmatrix.matrix
+        """
+        return self.tableau[1:1 + self.num_restrictions,
+               self.num_restrictions:self.num_restrictions + self.num_variables_from_tableau]
+
+    @property
+    def b_from_tableau(self):
+        """
+        :return: Submatrix from tableau with b.
+        :rtype: np.matrixlib.defmatrix.matrix
+        """
+        return np.matrix(self.tableau[1:, -1])
+
+    @property
+    def solution(self):
+        """
+        Make a solution from tableau and basis.
+        :return: A Numpy matrix in array form with the solution.
+        :rtype: np.matrixlib.defmatrix.matrix
+        """
+        solution = self.__zeros_matrix(1, self.num_variables_from_tableau)
+        for i in range(self.num_restrictions):
+            solution[0, self.basis[i]] = self.b_from_tableau[i, 0]
+        return solution
 
     def __create_certificate_of_unlimited(self, problematic_column):
         """
-        Generate a certificate when a linear programming is unlimited.
+        Generate a certificate when a linear programming is unlimited when perform primal simplex.
         :param problematic_column: Column that indicates the limitlessness on tableau.
         :type problematic_column: int
         :return: None
@@ -215,22 +287,41 @@ class LinearProgramming:
         :return: Objective value if found or None if it is infeasible or unlimited.
         :rtype: int
         """
+        for column in range(len(self.basis)):
+            self.__pivot_tableau(column, self.basis[column])
+
         while True:
-            for i in range(self.num_restrictions):
-                if self.b_from_tableau[i, 0] < 0:
+            is_optimal = True
+
+            # Find a entry of b that can be pivoted.
+            for row in range(self.num_restrictions):
+                if self.b_from_tableau[row, 0] < 0:
+                    # Check if can be unlimited
+                    if all(self.a_from_tableau[row, i] >= 0 for i in range(self.num_variables_from_tableau)):
+                        self.infeasible = True
+                        self.certificate = self.operations_matrix[row, 0:self.num_restrictions]
+                        return None
+                    is_optimal = False
                     break
-                else:
-                    return self.objective_value
+
+            # Check if it is optimal
+            if is_optimal:
+                self.certificate = self.tableau[0, 0:self.num_restrictions]
+                return self.objective_value
+
+            # Find with columns will be pivoted.
             column = None
             current_ratio = None
             for j in range(self.num_variables_from_tableau):
-                ratio = ((-1) * self.minus_ct_from_tableau[0, j]) / self.a_from_tableau[i, j]
-                if self.a_from_tableau[i, j] < 0 and (current_ratio < ratio or current_ratio is None):
-                    column = j
-                    current_ratio = ratio
-            self.__pivot_matrix(self.tableau, 1 + i, self.num_restrictions + column)
-            self.basis[i] = column
+                if self.a_from_tableau[row, j] < 0:
+                    ratio = self.minus_ct_from_tableau[0, j] / (-self.a_from_tableau[row, j])
+                    if current_ratio is None or current_ratio > ratio:
+                        column = j
+                        current_ratio = ratio
+            self.basis[row] = column
+            self.__pivot_tableau(row, column)
 
+    @property
     def __primal_simplex(self):
         """
         Perform primal simplex.
@@ -316,7 +407,7 @@ class LinearProgramming:
             return None
         else:
             self.basis = auxiliary_pl.basis
-            return self.__primal_simplex()
+            return self.__primal_simplex
 
     @property
     def simplex(self):
@@ -325,13 +416,12 @@ class LinearProgramming:
         :return: Objective value if found or -1 if the linear programming is infeasible or unlimited.
         :rtype: int
         """
-        print(self.__to_string_matrix_with_fractions(self.tableau))
         if any(self.b_from_tableau[i, 0] < 0 for i in range(self.num_restrictions)) and all(
                 self.minus_ct_from_tableau[0, i] >= 0 for i in range(self.num_variables_from_tableau)):
             return self.__dual_simplex
         elif all(self.b_from_tableau[i, 0] >= 0 for i in range(self.num_restrictions)) and any(
                 self.minus_ct_from_tableau[0, i] < 0 for i in range(self.num_variables_from_tableau)):
-            return self.__primal_simplex()
+            return self.__primal_simplex
         elif any(self.b_from_tableau[i, 0] < 0 for i in range(self.num_restrictions)) and any(
                 self.minus_ct_from_tableau[0, i] < 0 for i in range(self.num_variables_from_tableau)):
             return self.__primal_simplex_by_auxiliary
@@ -350,14 +440,12 @@ def main():
 
     result = linear_programming.simplex
 
-    if linear_programming.unlimited:
+    if linear_programming.infeasible:
+        print("0")
+        print(linear_programming.to_string_vector_with_fractions(linear_programming.certificate))
+    elif linear_programming.unlimited:
         print("1")
         print(linear_programming.to_string_vector_with_fractions(linear_programming.certificate))
-    elif linear_programming.infeasible:
-        print("Inviável")
-    elif result is -2:
-        print("Debugging")
-        pass
     else:
         print("2")
         print(linear_programming.to_string_vector_with_fractions(linear_programming.solution))
