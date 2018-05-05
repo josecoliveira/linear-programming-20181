@@ -5,7 +5,13 @@ from fractions import Fraction
 import numpy as np
 
 
-def convert_matrix_to_fractions(matrix: np.matrixlib.defmatrix.matrix) -> np.matrixlib.defmatrix.matrix:
+def convert_matrix_to_fractions(matrix):
+    """
+    :param matrix: Numpy matrix
+    :type matrix: np.matrixlib.defmatrix.matrix
+    :return: Numpy matrix with Fractions.
+    :rtype: np.matrixlib.defmatrix.matrix
+    """
     matrix = np.matrix(matrix)
     matrix: np.matrixlib.defmatrix.matrix = matrix.astype('object')
     for i in range(matrix.shape[0]):
@@ -26,12 +32,23 @@ class LinearProgramming:
         :return: String representing the matrix.
         :rtype: str
         """
+        sizes = [None] * matrix.shape[1]
+
+        for i in range(matrix.shape[0]):
+            for j in range(matrix.shape[1]):
+                size = len(str(Fraction(matrix[i, j]).numerator) + "/" + str(
+                    Fraction(matrix[i, j]).denominator))
+                if sizes[j] is None or sizes[j] < size:
+                    sizes[j] = size
+
         string = ""
         for i in range(matrix.shape[0]):
             for j in range(matrix.shape[1]):
-                string += str(Fraction(matrix[i, j]).numerator) + "/" + str(
-                    Fraction(matrix[i, j]).denominator) + " "
-            string += "\n"
+                new_string = str(Fraction(matrix[i, j]).numerator) + "/" + str(
+                    Fraction(matrix[i, j]).denominator)
+                string += (" " * (sizes[j] - len(new_string))) + new_string + " "
+            if i is not matrix.shape[0] - 1:
+                string += "\n"
         return string
 
     @staticmethod
@@ -101,7 +118,7 @@ class LinearProgramming:
             if i != row:
                 matrix[i] = matrix[i] - matrix[i, column] * matrix[row]
 
-    def __init__(self, matrix: np.matrixlib.defmatrix.matrix = None, ct=None, a=None, b=None, fpi=False, basis=None):
+    def __init__(self, matrix = None, ct=None, a=None, b=None, fpi=False, basis=None, log_file=None):
         """
         Constructor for Linear Programing. It can be instantiate with a Numpy matrix with Fraction in the following
         form:
@@ -127,6 +144,8 @@ class LinearProgramming:
         :type fpi: bool
         :param basis: Array representing where the positions on A the basis are, if it is needed.
         :type basis: list
+        :param log_file: File to print tableau for each step.
+        :type log_file: _io.TextIO
         """
         if matrix is not None:
             self.ct = matrix[0, 0:-1]
@@ -151,6 +170,7 @@ class LinearProgramming:
 
         self.infeasible = False
         self.unlimited = False
+        self.log_file = log_file
 
     def __init_basis(self):
         """
@@ -258,6 +278,15 @@ class LinearProgramming:
             solution[0, self.basis[i]] = self.b_from_tableau[i, 0]
         return solution
 
+    def __print_on_log(self, string):
+        """
+        Print a string on log file if is defined.
+        :param string: String to be printed.
+        :type string: str
+        """
+        if self.log_file is not None:
+            self.log_file.write(string)
+
     def __create_certificate_of_unlimited(self, problematic_column):
         """
         Generate a certificate when a linear programming is unlimited when perform primal simplex.
@@ -287,10 +316,16 @@ class LinearProgramming:
         :return: Objective value if found or None if it is infeasible or unlimited.
         :rtype: int
         """
+        step = 1
+
+        self.__print_on_log("Tableau #" + str(step) + "\n")
+        self.__print_on_log(self.__to_string_matrix_with_fractions(self.tableau) + "\n\n")
+
         for column in range(len(self.basis)):
             self.__pivot_tableau(column, self.basis[column])
 
         while True:
+            step += 1
             is_optimal = True
 
             # Find a entry of b that can be pivoted.
@@ -321,6 +356,9 @@ class LinearProgramming:
             self.basis[row] = column
             self.__pivot_tableau(row, column)
 
+            self.__print_on_log("Tableau #" + str(step) + "\n")
+            self.__print_on_log(self.__to_string_matrix_with_fractions(self.tableau) + "\n\n")
+
     @property
     def __primal_simplex(self):
         """
@@ -328,10 +366,16 @@ class LinearProgramming:
         :return: Objective value if found or None if it is unlimited.
         :rtype: int
         """
+        step = 1
+
         for column in range(len(self.basis)):
             self.__pivot_tableau(column, self.basis[column])
 
+        self.__print_on_log("Tableau #" + str(step) + "\n")
+        self.__print_on_log(self.__to_string_matrix_with_fractions(self.tableau) + "\n\n")
+
         while True:
+            step += 1
             is_optimal = True
 
             # Find a input from c^t that can be increased.
@@ -362,12 +406,15 @@ class LinearProgramming:
             self.basis[row] = column
             self.__pivot_tableau(row, column)
 
+            self.__print_on_log("Tableau #" + str(step) + "\n")
+            self.__print_on_log(self.__to_string_matrix_with_fractions(self.tableau) + "\n\n")
+
     @property
     def __primal_simplex_by_auxiliary(self):
         """
         Build a instance of a linear programming to find a basis for original linear programing. Then perform primal
         simplex.
-        :return: Objective value if found or none if it is unlimited or infeasible.
+        :return: Objective value if found or None if it is unlimited or infeasible.
         :rtype: int
         """
         # Remove non-negativity of restrictions.
@@ -413,46 +460,53 @@ class LinearProgramming:
     def simplex(self):
         """
         Find which simplex type will be performed and return its result.
-        :return: Objective value if found or -1 if the linear programming is infeasible or unlimited.
+        :return: Objective value if found or None if the linear programming is infeasible or unlimited.
         :rtype: int
         """
         if any(self.b_from_tableau[i, 0] < 0 for i in range(self.num_restrictions)) and all(
                 self.minus_ct_from_tableau[0, i] >= 0 for i in range(self.num_variables_from_tableau)):
+            self.__print_on_log("Dual simplex\n\n")
             return self.__dual_simplex
         elif all(self.b_from_tableau[i, 0] >= 0 for i in range(self.num_restrictions)) and any(
                 self.minus_ct_from_tableau[0, i] < 0 for i in range(self.num_variables_from_tableau)):
+            self.__print_on_log("Primal simplex\n\n")
             return self.__primal_simplex
         elif any(self.b_from_tableau[i, 0] < 0 for i in range(self.num_restrictions)) and any(
                 self.minus_ct_from_tableau[0, i] < 0 for i in range(self.num_variables_from_tableau)):
+            self.__print_on_log("Auxiliary Linear Programming\n\n")
             return self.__primal_simplex_by_auxiliary
 
 
 def main():
-    input_file = open(sys.argv[1], 'r')
+    input_file = open(sys.argv[1], "r")
     lines = int(input_file.readline().replace("\n", ""))
     columns = int(input_file.readline().replace("\n", ""))
     string_matrix = input_file.readline().replace("\n", "")
+    input_file.close()
     matrix = json.loads(string_matrix)
 
     matrix = convert_matrix_to_fractions(matrix)
 
-    linear_programming: LinearProgramming = LinearProgramming(matrix=matrix)
+    log_file = open("log.txt", "w")
+    linear_programming: LinearProgramming = LinearProgramming(matrix=matrix, log_file=log_file)
 
-    result = linear_programming.simplex
+    linear_programming.simplex
 
+    conclusion_file = open("conclusao.txt", "w")
     if linear_programming.infeasible:
-        print("0")
-        print(linear_programming.to_string_vector_with_fractions(linear_programming.certificate))
+        conclusion_file.write("0\n")
+        conclusion_file.write(linear_programming.to_string_vector_with_fractions(linear_programming.certificate) + "\n")
     elif linear_programming.unlimited:
-        print("1")
-        print(linear_programming.to_string_vector_with_fractions(linear_programming.certificate))
+        conclusion_file.write("1\n")
+        conclusion_file.write(linear_programming.to_string_vector_with_fractions(linear_programming.certificate) + "\n")
     else:
-        print("2")
-        print(linear_programming.to_string_vector_with_fractions(linear_programming.solution))
-        print(linear_programming.objective_value)
-        print(linear_programming.to_string_vector_with_fractions(linear_programming.certificate))
+        conclusion_file.write("2\n")
+        conclusion_file.write(linear_programming.to_string_vector_with_fractions(linear_programming.solution) + "\n")
+        conclusion_file.write(str(linear_programming.objective_value) + "\n")
+        conclusion_file.write(linear_programming.to_string_vector_with_fractions(linear_programming.certificate) + "\n")
+    conclusion_file.close()
 
-    input_file.close()
+    log_file.close()
 
 
 if __name__ == "__main__":
