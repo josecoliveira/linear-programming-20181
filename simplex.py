@@ -13,7 +13,7 @@ def convert_matrix_to_fractions(matrix):
     :rtype: np.matrixlib.defmatrix.matrix
     """
     matrix = np.matrix(matrix)
-    matrix: np.matrixlib.defmatrix.matrix = matrix.astype('object')
+    matrix = matrix.astype('object')
     for i in range(matrix.shape[0]):
         for j in range(matrix.shape[1]):
             matrix[i, j] = Fraction(matrix[i, j])
@@ -118,7 +118,8 @@ class LinearProgramming:
             if i != row:
                 matrix[i] = matrix[i] - matrix[i, column] * matrix[row]
 
-    def __init__(self, matrix = None, ct=None, a=None, b=None, fpi=False, basis=None, log_file=None):
+    def __init__(self, matrix=None, ct=None, a=None, b=None, fpi=False, basis=None, log_file=None,
+                 operations_matrix=None):
         """
         Constructor for Linear Programing. It can be instantiate with a Numpy matrix with Fraction in the following
         form:
@@ -147,6 +148,8 @@ class LinearProgramming:
         :param log_file: File to print tableau for each step.
         :type log_file: _io.TextIO
         """
+        self.log_file = log_file
+
         if matrix is not None:
             self.ct = matrix[0, 0:-1]
             self.a = matrix[1:, 0:-1]
@@ -155,11 +158,17 @@ class LinearProgramming:
             self.ct = ct
             self.a = a
             self.b = b
+
         self.num_variables = self.a.shape[1]
         self.num_restrictions = self.a.shape[0]
+
         if fpi and basis is not None:
             self.num_variables_from_tableau = self.num_variables
             self.__make_tableau(gap=False)
+
+            if operations_matrix is not None:
+                self.tableau[1:1 + self.num_restrictions, 0:self.num_restrictions] = operations_matrix
+
             self.basis = basis
             for i in range(len(self.basis)):
                 self.__pivot_tableau(i, self.basis[i])
@@ -168,9 +177,10 @@ class LinearProgramming:
             self.__make_tableau(gap=True)
             self.__init_basis()
 
+
+
         self.infeasible = False
         self.unlimited = False
-        self.log_file = log_file
 
     def __init_basis(self):
         """
@@ -309,13 +319,14 @@ class LinearProgramming:
         """
         self.__pivot_matrix(self.tableau, 1 + a_row, self.num_restrictions + a_column)
 
-    @property
     def __dual_simplex(self):
         """
         Perform dual simplex.
         :return: Objective value if found or None if it is infeasible or unlimited.
         :rtype: int
         """
+        self.__print_on_log("Dual simplex\n\n")
+
         step = 1
 
         self.__print_on_log("Tableau #" + str(step) + "\n")
@@ -359,7 +370,6 @@ class LinearProgramming:
             self.__print_on_log("Tableau #" + str(step) + "\n")
             self.__print_on_log(self.__to_string_matrix_with_fractions(self.tableau) + "\n\n")
 
-    @property
     def __primal_simplex(self):
         """
         Perform primal simplex.
@@ -367,6 +377,8 @@ class LinearProgramming:
         :rtype: int
         """
         step = 1
+
+        self.__print_on_log("Primal simplex\n\n")
 
         for column in range(len(self.basis)):
             self.__pivot_tableau(column, self.basis[column])
@@ -409,7 +421,6 @@ class LinearProgramming:
             self.__print_on_log("Tableau #" + str(step) + "\n")
             self.__print_on_log(self.__to_string_matrix_with_fractions(self.tableau) + "\n\n")
 
-    @property
     def __primal_simplex_by_auxiliary(self):
         """
         Build a instance of a linear programming to find a basis for original linear programing. Then perform primal
@@ -417,6 +428,8 @@ class LinearProgramming:
         :return: Objective value if found or None if it is unlimited or infeasible.
         :rtype: int
         """
+        self.__print_on_log("Auxiliary Linear Programming\n\n")
+
         # Remove non-negativity of restrictions.
         for row in range(self.num_restrictions):
             if self.b_from_tableau[row, 0] < 0:
@@ -441,8 +454,10 @@ class LinearProgramming:
         for column in range(self.num_restrictions):
             new_basis.append(self.num_variables_from_tableau + column)
 
-        auxiliary_pl = LinearProgramming(ct=new_ct, a=new_a, b=self.b_from_tableau, fpi=True, basis=new_basis)
-        result = auxiliary_pl.simplex
+        auxiliary_pl = LinearProgramming(ct=new_ct, a=new_a, b=self.b_from_tableau, fpi=True, basis=new_basis,
+                                         log_file=self.log_file, operations_matrix=self.operations_matrix)
+        self.__print_on_log(self.__to_string_matrix_with_fractions(auxiliary_pl.tableau) + "\n\n")
+        result = auxiliary_pl.simplex()
 
         if auxiliary_pl.unlimited:
             self.certificate = auxiliary_pl.certificate
@@ -454,9 +469,8 @@ class LinearProgramming:
             return None
         else:
             self.basis = auxiliary_pl.basis
-            return self.__primal_simplex
+            return self.__primal_simplex()
 
-    @property
     def simplex(self):
         """
         Find which simplex type will be performed and return its result.
@@ -465,16 +479,13 @@ class LinearProgramming:
         """
         if any(self.b_from_tableau[i, 0] < 0 for i in range(self.num_restrictions)) and all(
                 self.minus_ct_from_tableau[0, i] >= 0 for i in range(self.num_variables_from_tableau)):
-            self.__print_on_log("Dual simplex\n\n")
-            return self.__dual_simplex
+            return self.__dual_simplex()
         elif all(self.b_from_tableau[i, 0] >= 0 for i in range(self.num_restrictions)) and any(
                 self.minus_ct_from_tableau[0, i] < 0 for i in range(self.num_variables_from_tableau)):
-            self.__print_on_log("Primal simplex\n\n")
-            return self.__primal_simplex
+            return self.__primal_simplex()
         elif any(self.b_from_tableau[i, 0] < 0 for i in range(self.num_restrictions)) and any(
                 self.minus_ct_from_tableau[0, i] < 0 for i in range(self.num_variables_from_tableau)):
-            self.__print_on_log("Auxiliary Linear Programming\n\n")
-            return self.__primal_simplex_by_auxiliary
+            return self.__primal_simplex_by_auxiliary()
 
 
 def main():
@@ -490,7 +501,7 @@ def main():
     log_file = open("log.txt", "w")
     linear_programming: LinearProgramming = LinearProgramming(matrix=matrix, log_file=log_file)
 
-    linear_programming.simplex
+    linear_programming.simplex()
 
     conclusion_file = open("conclusao.txt", "w")
     if linear_programming.infeasible:
