@@ -4,6 +4,23 @@ from fractions import Fraction
 
 import numpy as np
 
+"""
+
+Trabalho Prático de Pesquisa Operacional
+
+José Carlos de Oliveira Júnior
+
+7 de maio de 2017
+
+Este trabalho deve ser executado em uma versão 3.x do Python.
+O comando para executá-lo é
+
+& python simplex.py input.txt
+
+Sendo "input.txt" o arquivo de entrada.
+
+"""
+
 
 def convert_matrix_to_fractions(matrix):
     """
