@@ -1,6 +1,8 @@
 import json
 import sys
 from fractions import Fraction
+from math import floor
+from math import ceil
 
 import numpy as np
 
@@ -10,7 +12,7 @@ Trabalho Prático de Pesquisa Operacional
 
 José Carlos de Oliveira Júnior
 
-7 de maio de 2017
+18 de junho de 2018
 
 Este trabalho deve ser executado em uma versão 3.x do Python.
 O comando para executá-lo é
@@ -38,6 +40,20 @@ def convert_matrix_to_fractions(matrix):
 
 
 class LinearProgramming:
+    tableau: np.matrixlib.defmatrix.matrix = None
+    LESS = 0
+    GREATER = 1
+
+    @staticmethod
+    def __to_string_fraction(fraction):
+        """
+
+        :param fraction:
+        :type fraction: fractions.Fraction
+        :return:
+        :rtype: fraction.Fractions
+        """
+        return str(fraction.numerator) + "/" + str(fraction.denominator)
 
     @staticmethod
     def __to_string_matrix_with_fractions(matrix):
@@ -53,19 +69,62 @@ class LinearProgramming:
 
         for i in range(matrix.shape[0]):
             for j in range(matrix.shape[1]):
-                size = len(str(Fraction(matrix[i, j]).numerator) + "/" + str(
-                    Fraction(matrix[i, j]).denominator))
+                size = len(LinearProgramming.__to_string_fraction(matrix[i, j]))
                 if sizes[j] is None or sizes[j] < size:
                     sizes[j] = size
 
         string = ""
         for i in range(matrix.shape[0]):
             for j in range(matrix.shape[1]):
-                new_string = str(Fraction(matrix[i, j]).numerator) + "/" + str(
-                    Fraction(matrix[i, j]).denominator)
+                new_string = str(Fraction(matrix[i, j]).numerator) + "/" + str(Fraction(matrix[i, j]).denominator)
                 string += (" " * (sizes[j] - len(new_string))) + new_string + " "
             if i is not matrix.shape[0] - 1:
                 string += "\n"
+        return string
+
+    def __to_string_tableau(self):
+        sizes = [None] * self.tableau.shape[1]
+
+        for i in range(self.tableau.shape[0]):
+            for j in range(self.tableau.shape[1]):
+                size = len(self.__to_string_fraction(self.tableau[i, j]))
+                if sizes[j] is None or sizes[j] < size:
+                    sizes[j] = size
+
+        string = ""
+        for j in range(self.num_restrictions):
+            new_string = self.__to_string_fraction(self.tableau[0, j])
+            string += (" " * (sizes[j] - len(new_string))) + new_string + " "
+        string += "│ "
+        for j in range(self.num_restrictions, self.num_restrictions + self.num_variables_from_tableau):
+            new_string = self.__to_string_fraction(self.tableau[0, j])
+            string += (" " * (sizes[j] - len(new_string))) + new_string + " "
+        string += "│ "
+        j += 1
+        new_string = self.__to_string_fraction(self.tableau[0, j])
+        string += (" " * (sizes[j] - len(new_string))) + new_string + " \n"
+
+        for j in range(self.num_restrictions):
+            string += ("─" * (sizes[j] + 1))
+        string += "┼"
+        for j in range(self.num_restrictions, self.num_restrictions + self.num_variables_from_tableau):
+            string += ("─" * (sizes[j] + 1))
+        string += "─┼" + ("─" * (sizes[j + 1] + 1)) + "\n"
+
+        for i in range(1, self.tableau.shape[0]):
+            for j in range(self.num_restrictions):
+                new_string = self.__to_string_fraction(self.tableau[i, j])
+                string += (" " * (sizes[j] - len(new_string))) + new_string + " "
+            string += "│ "
+            for j in range(self.num_restrictions, self.num_restrictions + self.num_variables_from_tableau):
+                new_string = self.__to_string_fraction(self.tableau[i, j])
+                string += (" " * (sizes[j] - len(new_string))) + new_string + " "
+            string += "│ "
+            j += 1
+            new_string = self.__to_string_fraction(self.tableau[i, j])
+            string += (" " * (sizes[j] - len(new_string))) + new_string
+            string += "\n"
+
         return string
 
     @staticmethod
@@ -193,11 +252,15 @@ class LinearProgramming:
             self.num_variables_from_tableau = self.num_variables + self.num_restrictions
             self.__make_tableau(gap=True)
             self.__init_basis()
-
-
+            # self.__print_on_log("Basis: " + str(self.basis) + "\n\n")
 
         self.infeasible = False
         self.unlimited = False
+
+        # Branch and bound
+        self.integer_solution = None
+        self.integer_objective_value = Fraction(0)
+        self.integer_found = False
 
     def __init_basis(self):
         """
@@ -342,12 +405,12 @@ class LinearProgramming:
         :return: Objective value if found or None if it is infeasible or unlimited.
         :rtype: int
         """
-        self.__print_on_log("Dual simplex\n\n")
+        # self.__print_on_log("Dual simplex\n\n")
 
         step = 1
 
-        self.__print_on_log("Tableau #" + str(step) + "\n")
-        self.__print_on_log(self.__to_string_matrix_with_fractions(self.tableau) + "\n\n")
+        # self.__print_on_log("Tableau #" + str(step) + "\n")
+        # self.__print_on_log(self.__to_string_tableau() + '\n\n')
 
         for column in range(len(self.basis)):
             self.__pivot_tableau(column, self.basis[column])
@@ -384,8 +447,8 @@ class LinearProgramming:
             self.basis[row] = column
             self.__pivot_tableau(row, column)
 
-            self.__print_on_log("Tableau #" + str(step) + "\n")
-            self.__print_on_log(self.__to_string_matrix_with_fractions(self.tableau) + "\n\n")
+            # self.__print_on_log("Tableau #" + str(step) + "\n")
+            # self.__print_on_log(self.__to_string_tableau() + "\n\n")
 
     def __primal_simplex(self):
         """
@@ -395,13 +458,13 @@ class LinearProgramming:
         """
         step = 1
 
-        self.__print_on_log("Primal simplex\n\n")
+        # self.__print_on_log("Primal simplex\n\n")
 
         for column in range(len(self.basis)):
             self.__pivot_tableau(column, self.basis[column])
 
-        self.__print_on_log("Tableau #" + str(step) + "\n")
-        self.__print_on_log(self.__to_string_matrix_with_fractions(self.tableau) + "\n\n")
+        # self.__print_on_log("Tableau #" + str(step) + "\n")
+        # self.__print_on_log(self.__to_string_tableau() + "\n\n")
 
         while True:
             step += 1
@@ -435,8 +498,8 @@ class LinearProgramming:
             self.basis[row] = column
             self.__pivot_tableau(row, column)
 
-            self.__print_on_log("Tableau #" + str(step) + "\n")
-            self.__print_on_log(self.__to_string_matrix_with_fractions(self.tableau) + "\n\n")
+            # self.__print_on_log("Tableau #" + str(step) + "\n")
+            # self.__print_on_log(self.__to_string_tableau() + "\n\n")
 
     def __primal_simplex_by_auxiliary(self):
         """
@@ -445,7 +508,7 @@ class LinearProgramming:
         :return: Objective value if found or None if it is unlimited or infeasible.
         :rtype: int
         """
-        self.__print_on_log("Auxiliary Linear Programming\n\n")
+        # self.__print_on_log("Auxiliary Linear Programming\n\n")
 
         # Remove non-negativity of restrictions.
         for row in range(self.num_restrictions):
@@ -473,7 +536,7 @@ class LinearProgramming:
 
         auxiliary_pl = LinearProgramming(ct=new_ct, a=new_a, b=self.b_from_tableau, fpi=True, basis=new_basis,
                                          log_file=self.log_file, operations_matrix=self.operations_matrix)
-        self.__print_on_log(self.__to_string_matrix_with_fractions(auxiliary_pl.tableau) + "\n\n")
+        # self.__print_on_log(self.__to_string_tableau() + "\n\n")
         result = auxiliary_pl.simplex()
 
         if auxiliary_pl.unlimited:
@@ -485,7 +548,7 @@ class LinearProgramming:
             self.infeasible = True
             return None
         else:
-            self.basis = auxiliary_pl.basis
+            self.basis = list(auxiliary_pl.basis)
             return self.__primal_simplex()
 
     def simplex(self):
@@ -504,9 +567,264 @@ class LinearProgramming:
                 self.minus_ct_from_tableau[0, i] < 0 for i in range(self.num_variables_from_tableau)):
             return self.__primal_simplex_by_auxiliary()
 
+    def addRestriction(self, restriction):
+        """
+        Add new restriction to tableau
+        :param restriction:
+        :type restriction: np.matrixlib.defmatrix.matrix
+        """
+
+        # print(self.__to_string_tableau())
+
+        new_tableau: np.matrixlib.defmatrix.matrix = self.__zeros_matrix(self.tableau.shape[0] + 1,
+                                                                         self.tableau.shape[1] + 2)
+
+        # Certificate vector
+        new_tableau[0, 0:self.num_restrictions] = self.tableau[0, 0:self.num_restrictions]
+
+        # Minus c_T from tableau
+        new_tableau[0,
+        self.num_restrictions + 1:self.num_restrictions + 1 + self.num_variables_from_tableau] = self.minus_ct_from_tableau
+
+        # Objective value
+        new_tableau[0, -1] = self.objective_value
+
+        # Operations matrix
+        new_tableau[1:1 + self.num_restrictions, 0:self.num_restrictions] = self.operations_matrix
+        new_tableau[1 + self.num_restrictions, self.num_restrictions] = Fraction(1)
+
+        # A from tableau
+        new_tableau[1:1 + self.num_restrictions,
+        self.num_restrictions + 1:self.num_restrictions + 1 + self.num_variables_from_tableau] = self.a_from_tableau
+        new_tableau[-1,
+        self.num_restrictions + 1:self.num_restrictions + 1 + self.num_variables_from_tableau] = restriction[0,
+                                                                                                 0:self.num_variables_from_tableau]
+        new_tableau[-1, -2] = Fraction(1)
+
+        # b from tableau
+        new_tableau[1:self.num_restrictions + 1, -1] = self.b_from_tableau
+        new_tableau[-1, -1] = restriction[0, -1]
+
+        self.num_variables_from_tableau += 1
+        self.num_restrictions += 1
+        self.tableau = new_tableau
+        old_basis = np.copy(self.basis)
+        self.basis.append(self.a_from_tableau.shape[1] - 1)
+
+        # self.__print_on_log("New tableau\n\n")
+        # self.__print_on_log(self.__to_string_tableau() + "\n\n")
+
+        # self.__print_on_log("Antes de repivotar o novo tableau para conferir restrição\n")
+        # self.__print_on_log(self.__to_string_tableau())
+        # self.__print_on_log(str(self.basis) + "\n")
+
+        for i in range(self.num_restrictions - 1):
+            self.__pivot_tableau(i, self.basis[i])
+
+        # self.__print_on_log("Antes do simplex de novo tableau\n")
+        # self.__print_on_log(self.__to_string_tableau())
+        # self.__print_on_log(str(self.basis) + "\n")
+
+        self.simplex()
+
+    def remove_last_restriction(self):
+        new_tableau: np.matrixlib.defmatrix.matrix = self.__zeros_matrix(self.tableau.shape[0] - 1,
+                                                                         self.tableau.shape[1] - 2)
+
+        # Certificate vector
+        new_tableau[0, 0:self.num_restrictions - 1] = self.tableau[0, 0:self.num_restrictions - 1]
+
+        # Minus c_T from tableau
+        new_tableau[0, self.num_restrictions - 1:self.num_restrictions + self.num_variables_from_tableau - 2] = self.minus_ct_from_tableau[0, 0:self.num_variables_from_tableau - 1]
+
+        # Objective value
+        new_tableau[0, -1] = self.tableau[0, -1]
+
+        # Operations Matrix
+        new_tableau[1:, 0:self.num_restrictions - 1] = self.operations_matrix[0:-1, 0:-1]
+
+        # A from tableau
+        new_tableau[1:, self.num_restrictions - 1:self.num_restrictions + self.num_variables_from_tableau - 2] = self.a_from_tableau[0:self.num_restrictions - 1, 0:self.num_variables_from_tableau - 1]
+
+        # b from tableau
+        new_tableau[1:, -1] = self.b_from_tableau[0:self.num_restrictions - 1, -1]
+
+        del self.basis[-1]
+
+        self.num_restrictions -= 1
+        self.num_variables_from_tableau -= 1
+
+        self.tableau = new_tableau
+
+    def first_non_integer_solution_entry(self):
+        """
+        Find a entry on solution that is not integer
+        :return: Row of b where is a not integer entry
+        :rtype: int
+        """
+        for row in range(self.num_restrictions):
+            if self.b_from_tableau[row, 0].denominator is not 1:
+                for column in range(self.num_variables):
+                    if self.a_from_tableau[row, column] == Fraction(1, 1):
+                        return row
+        return -1
+
+    def __get_solution_index_from_b(self, row):
+        for column in range(self.num_variables):
+            if self.a_from_tableau[row, column] == Fraction(1, 1):
+                return column
+
+    def cutting_planes(self):
+        """
+        Do cutting planes in the same instance
+        """
+        step = 1
+
+        while True:
+            row = self.first_non_integer_solution_entry()
+            if row is -1:
+                break
+            self.__print_on_log("-------------------------- CUTTING PLANES " + str(step) + "------------------------\n")
+            restriction = np.copy(self.tableau[row + 1:,
+                                  self.num_restrictions:self.num_restrictions + self.num_variables_from_tableau + 1])
+            for i in range(self.num_variables_from_tableau + 1):
+                restriction[0, i] = floor(restriction[0, i])
+            self.addRestriction(restriction)
+            self.__print_on_log(self.__to_string_tableau() + "\n")
+            step += 1
+
+    def __get_new_restriction_bnb(self, value, row, rtype):
+        restriction = self.__zeros_matrix(1, self.num_variables_from_tableau + 1)
+        if rtype is self.LESS:
+            restriction[0, self.basis[row]] = 1
+            restriction[0, -1] = value
+        elif rtype is self.GREATER:
+            restriction[0, self.basis[row]] = -1
+            restriction[0, -1] = -value
+        return restriction
+
+    def just_print_it_for_me(self):
+        self.__print_on_log("Relaxação linear\n")
+        self.__print_on_log(self.__to_string_tableau())
+        self.__print_on_log(str(self.basis) + "\n\n")
+
+    def branch_and_bound(self, level):
+        print("RELAXAÇÃO LINEAR: " + str(self.objective_value) + "\n\n");
+
+        row = self.first_non_integer_solution_entry()
+        index = self.__get_solution_index_from_b(row)
+
+        if not self.infeasible and row is -1 and (self.objective_value > self.integer_objective_value or not self.integer_found):
+            # self.__print_on_log("Founded integer " + str(self.objective_value) + " " + self.to_string_vector_with_fractions(self.solution) + "\n")
+            self.integer_objective_value = self.objective_value
+            self.integer_solution = np.copy(self.solution)
+            self.integer_found = True
+            return
+        elif not self.infeasible and (self.integer_objective_value is None or self.objective_value > self.integer_objective_value):
+            current_basis = list(self.basis)
+            basis_before_new_simplex = list(self.basis)
+            basis_before_new_simplex.append(self.a_from_tableau.shape[1])
+
+            # self.__print_on_log("Antes de adicionar a restrição\n")
+            # self.__print_on_log(self.__to_string_tableau())
+            # self.__print_on_log(str(self.basis) + "\n")
+
+            # Cria nova restrição e adiciona
+            restriction = self.__get_new_restriction_bnb(floor(self.b_from_tableau[row, 0]), row, self.LESS)
+            # self.__print_on_log("--- ADICIONANDO RESTRIÇÃO " + self.to_string_vector_with_fractions(restriction) + "\n")
+            self.addRestriction(restriction)
+
+            # self.__print_on_log("Depois de adicionar a restrição\n")
+            # self.__print_on_log(self.__to_string_tableau())
+            # self.__print_on_log(str(self.basis) + "\n")
+
+            # Printa no log o estado atual
+            self.__print_on_log("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+            self.__print_on_log("┃" + ("    " * level) + "[x_" + str(index) + " <= " + str(floor(self.b_from_tableau[row, 0])) + "] ")
+            if self.infeasible:
+                self.__print_on_log("Infeasible\n")
+            else:
+                self.__print_on_log(str(self.objective_value) + " " + self.to_string_vector_with_fractions(self.solution))
+                if all(self.solution[0, column].denominator == 1 for column in range(self.solution.shape[1])):
+                    self.__print_on_log(" Integer\n")
+                else:
+                    self.__print_on_log("\n")
+            self.__print_on_log("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+
+            # Chama branch and bound para primeira restrição
+            self.branch_and_bound(level + 1)
+            # self.__print_on_log("Voltou do primeiro B&B\n")
+
+            # Repivoteia no para o estado quando adiciona a nova restrição e não performa simplex
+            # self.__print_on_log("Antes de repivotear (preparação para remover restrição)\n")
+            # self.__print_on_log(self.__to_string_tableau())
+            # self.__print_on_log(str(self.basis) + "\n")
+            for i in range(self.num_restrictions):
+                self.__pivot_tableau(i, basis_before_new_simplex[i])
+            self.basis = list(basis_before_new_simplex)
+
+            # Remove restrição. Base terá um elemento a menos.
+            # self.__print_on_log("Antes de remover restrição\n")
+            # self.__print_on_log(self.__to_string_tableau())
+            # self.__print_on_log(str(self.basis) + "\n")
+            self.remove_last_restriction()
+
+            # self.__print_on_log("Antes de adicionar restrição\n")
+            # self.__print_on_log(self.__to_string_tableau())
+            # self.__print_on_log(str(self.basis) + "\n")
+
+            # Cria a segunda restrição e adiciona. Base voltará a ter um elemento a mais.
+            restriction = self.__get_new_restriction_bnb(ceil(self.b_from_tableau[row, 0]), row, self.GREATER)
+            # self.__print_on_log("--- ADICIONANDO RESTRIÇÃO " + self.to_string_vector_with_fractions(restriction) + "\n")
+            self.addRestriction(restriction)
+
+            # self.__print_on_log("Depois de adicionar a restrição\n")
+            # self.__print_on_log(self.__to_string_tableau())
+            # self.__print_on_log(str(self.basis) + "\n")
+
+            # Printa no log o estado atual
+            self.__print_on_log("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+            self.__print_on_log("┃" + ("    " * level) + "[x_" + str(index) + " >= " + str(ceil(self.b_from_tableau[row, 0])) + "] ")
+            if self.infeasible:
+                self.__print_on_log("Infeasible\n")
+            else:
+                self.__print_on_log(str(self.objective_value) + " " + self.to_string_vector_with_fractions(self.solution))
+                if all(self.solution[0, column].denominator == 1 for column in range(self.solution.shape[1])):
+                    self.__print_on_log(" Integer\n")
+                else:
+                    self.__print_on_log("\n")
+            self.__print_on_log("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+
+            # Chama branch and bound para a segunda restrição
+            self.branch_and_bound(level + 1)
+            self.__print_on_log("Voltou do segundo B&B com o seguinte tableau e antes de repivotar para remover\n")
+            self.__print_on_log(self.__to_string_tableau())
+            self.__print_on_log(str(self.basis) + "\n")
+            self.__print_on_log(str(basis_before_new_simplex) + "\n")
+
+            # Repivoteia no para o estado quando adiciona a nova restrição e não performa simplex
+            for i in range(self.num_restrictions):
+                self.__pivot_tableau(i, basis_before_new_simplex[i])
+            self.basis = list(basis_before_new_simplex)
+
+            # Remove restrição. Base teŕa um elemento a menos
+            self.__print_on_log("Depois de pivotar e antes de remover restrição\n")
+            self.__print_on_log(self.__to_string_tableau())
+            self.__print_on_log(str(self.basis) + "\n")
+            self.remove_last_restriction()
+
+            # self.__print_on_log("Removeu segunda restrição\n")
+            # self.__print_on_log(self.__to_string_tableau())
+            # self.__print_on_log(str(self.basis) + "\n")
+            return
+        elif self.infeasible or self.objective_value <= self.integer_objective_value:
+            # self.__print_on_log("É inviável\n")
+            self.infeasible = False
+            return
 
 def main():
     input_file = open(sys.argv[1], "r")
+    algorithm = int(input_file.readline().replace("\n", ""))
     lines = int(input_file.readline().replace("\n", ""))
     columns = int(input_file.readline().replace("\n", ""))
     string_matrix = input_file.readline().replace("\n", "")
@@ -521,17 +839,44 @@ def main():
     linear_programming.simplex()
 
     conclusion_file = open("conclusao.txt", "w")
-    if linear_programming.infeasible:
-        conclusion_file.write("0\n")
-        conclusion_file.write(linear_programming.to_string_vector_with_fractions(linear_programming.certificate) + "\n")
-    elif linear_programming.unlimited:
-        conclusion_file.write("1\n")
-        conclusion_file.write(linear_programming.to_string_vector_with_fractions(linear_programming.certificate) + "\n")
-    else:
-        conclusion_file.write("2\n")
-        conclusion_file.write(linear_programming.to_string_vector_with_fractions(linear_programming.solution) + "\n")
-        conclusion_file.write(str(linear_programming.objective_value) + "\n")
-        conclusion_file.write(linear_programming.to_string_vector_with_fractions(linear_programming.certificate) + "\n")
+    if algorithm == 0:
+        if linear_programming.infeasible:
+            conclusion_file.write("0\n")
+        elif linear_programming.unlimited:
+            conclusion_file.write("1\n")
+            conclusion_file.write(linear_programming.to_string_vector_with_fractions(linear_programming.certificate) + "\n")
+        else:
+            conclusion_file.write("2\n")
+            linear_relaxation_objective_value = linear_programming.objective_value
+            linear_relaxation_solution = np.copy(linear_programming.solution)
+            linear_relaxation_certificate = np.copy(linear_programming.certificate)
+            linear_programming.cutting_planes()
+            conclusion_file.write(linear_programming.to_string_vector_with_fractions(linear_programming.solution) + "\n")
+            conclusion_file.write(str(linear_programming.objective_value) + "\n")
+            conclusion_file.write(linear_programming.to_string_vector_with_fractions(linear_relaxation_solution) + "\n")
+            conclusion_file.write(str(linear_relaxation_objective_value) + "\n")
+            conclusion_file.write(linear_programming.to_string_vector_with_fractions(linear_relaxation_certificate) + "\n")
+    elif algorithm == 1:
+        if linear_programming.infeasible:
+            conclusion_file.write("0\n")
+        elif linear_programming.unlimited:
+            conclusion_file.write("1\n")
+            conclusion_file.write(linear_programming.to_string_vector_with_fractions(linear_programming.certificate) + "\n")
+        else:
+            conclusion_file.write("2\n")
+            linear_relaxation_objective_value = linear_programming.objective_value
+            linear_relaxation_solution = np.copy(linear_programming.solution)
+            linear_relaxation_certificate = np.copy(linear_programming.certificate)
+            linear_programming.just_print_it_for_me()
+            linear_programming.branch_and_bound(0)
+            print(linear_programming.integer_objective_value)
+            conclusion_file.write(linear_programming.to_string_vector_with_fractions(linear_programming.integer_solution) + "\n")
+            conclusion_file.write(str(linear_programming.integer_objective_value) + "\n")
+            conclusion_file.write(linear_programming.to_string_vector_with_fractions(linear_relaxation_solution) + "\n")
+            conclusion_file.write(str(linear_relaxation_objective_value) + "\n")
+            conclusion_file.write(linear_programming.to_string_vector_with_fractions(linear_relaxation_certificate) + "\n")
+
+
     conclusion_file.close()
 
     log_file.close()
