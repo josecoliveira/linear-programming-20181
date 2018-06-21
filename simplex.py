@@ -708,6 +708,22 @@ class LinearProgramming:
         self.__print_on_log(self.__to_string_tableau())
         self.__print_on_log(str(self.basis) + "\n\n")
 
+    def copy_fractions_matrix(self, matrix):
+        """
+
+        :param matrix:
+        :type matrix: np.matrixlib.defmatrix.matrix
+        :return:
+        :rtype: np.matrixlib.defmatrix.matrix
+        """
+        rows = matrix.shape[0]
+        columns = matrix.shape[1]
+        new_matrix = self.__zeros_matrix(rows, columns)
+        for row in range(rows):
+            for column in range(columns):
+                new_matrix[row, column] = matrix[row, column]
+        return new_matrix
+
     def branch_and_bound(self, level):
         print("RELAXAÇÃO LINEAR: " + str(self.objective_value) + "\n\n");
 
@@ -721,22 +737,25 @@ class LinearProgramming:
             self.integer_found = True
             return
         elif not self.infeasible and (self.integer_objective_value is None or self.objective_value > self.integer_objective_value):
-            current_basis = list(self.basis)
-            basis_before_new_simplex = list(self.basis)
-            basis_before_new_simplex.append(self.a_from_tableau.shape[1])
 
-            # self.__print_on_log("Antes de adicionar a restrição\n")
-            # self.__print_on_log(self.__to_string_tableau())
-            # self.__print_on_log(str(self.basis) + "\n")
+            current_tableau = self.copy_fractions_matrix(self.tableau)
+            current_basis = list(self.basis)
+
+            self.__print_on_log("Tableau antes de adicionar a primeira restrição\n")
+            self.__print_on_log(self.__to_string_tableau())
+            self.__print_on_log(str(self.basis) + "\n")
+            self.__print_on_log(str(self.b_from_tableau) + "\n")
+            self.__print_on_log(str(self.b_from_tableau) + "\n")
 
             # Cria nova restrição e adiciona
             restriction = self.__get_new_restriction_bnb(floor(self.b_from_tableau[row, 0]), row, self.LESS)
-            # self.__print_on_log("--- ADICIONANDO RESTRIÇÃO " + self.to_string_vector_with_fractions(restriction) + "\n")
+            self.__print_on_log("--- ADICIONANDO RESTRIÇÃO " + self.to_string_vector_with_fractions(restriction) + "\n")
             self.addRestriction(restriction)
 
-            # self.__print_on_log("Depois de adicionar a restrição\n")
-            # self.__print_on_log(self.__to_string_tableau())
-            # self.__print_on_log(str(self.basis) + "\n")
+            self.__print_on_log("Depois de adicionar a restrição e antes de chamar Branch and Bound\n")
+            self.__print_on_log(self.__to_string_tableau())
+            self.__print_on_log(str(self.basis) + "\n")
+            self.__print_on_log(str(self.b_from_tableau) + "\n")
 
             # Printa no log o estado atual
             self.__print_on_log("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
@@ -753,34 +772,37 @@ class LinearProgramming:
 
             # Chama branch and bound para primeira restrição
             self.branch_and_bound(level + 1)
-            # self.__print_on_log("Voltou do primeiro B&B\n")
 
-            # Repivoteia no para o estado quando adiciona a nova restrição e não performa simplex
-            # self.__print_on_log("Antes de repivotear (preparação para remover restrição)\n")
-            # self.__print_on_log(self.__to_string_tableau())
-            # self.__print_on_log(str(self.basis) + "\n")
-            for i in range(self.num_restrictions):
-                self.__pivot_tableau(i, basis_before_new_simplex[i])
-            self.basis = list(basis_before_new_simplex)
+            self.__print_on_log("Depois de voltar do branch and bound e antes de voltar para o tableau original\n")
+            self.__print_on_log(self.__to_string_tableau())
+            self.__print_on_log(str(self.basis) + "\n")
+            self.__print_on_log(str(self.b_from_tableau) + "\n")
 
-            # Remove restrição. Base terá um elemento a menos.
-            # self.__print_on_log("Antes de remover restrição\n")
-            # self.__print_on_log(self.__to_string_tableau())
-            # self.__print_on_log(str(self.basis) + "\n")
-            self.remove_last_restriction()
+            del self.tableau
+            del self.basis
+            self.tableau = self.copy_fractions_matrix(current_tableau)
+            self.basis = list(current_basis)
+            self.num_restrictions -= 1
+            self.num_variables_from_tableau -= 1
 
-            # self.__print_on_log("Antes de adicionar restrição\n")
-            # self.__print_on_log(self.__to_string_tableau())
-            # self.__print_on_log(str(self.basis) + "\n")
+            self.__print_on_log("Depois de voltar para o tableau original e antes de adicionar a segunda restrição\n")
+            self.__print_on_log(self.__to_string_tableau())
+            self.__print_on_log(str(self.basis) + "\n")
+            self.__print_on_log("Num restrictions: " + str(self.num_restrictions) + "\n")
+            self.__print_on_log("Num variables from tableau: " + str(self.num_variables_from_tableau) + "\n")
+            self.__print_on_log(str(row) + "\n")
+            self.__print_on_log(str(self.b_from_tableau) + "\n")
+            self.__print_on_log(str(self.__to_string_matrix_with_fractions(self.tableau[1:, -1])) + "\n")
+            self.__print_on_log(str(self.b_from_tableau[row, 0]) + "\n")
 
             # Cria a segunda restrição e adiciona. Base voltará a ter um elemento a mais.
             restriction = self.__get_new_restriction_bnb(ceil(self.b_from_tableau[row, 0]), row, self.GREATER)
-            # self.__print_on_log("--- ADICIONANDO RESTRIÇÃO " + self.to_string_vector_with_fractions(restriction) + "\n")
+            self.__print_on_log("--- ADICIONANDO RESTRIÇÃO " + self.to_string_vector_with_fractions(restriction) + "\n")
             self.addRestriction(restriction)
 
-            # self.__print_on_log("Depois de adicionar a restrição\n")
-            # self.__print_on_log(self.__to_string_tableau())
-            # self.__print_on_log(str(self.basis) + "\n")
+            self.__print_on_log("Depois de adicionar a segunda restrição e antes de chamar o Branch and Bound\n")
+            self.__print_on_log(self.__to_string_tableau())
+            self.__print_on_log(str(self.basis) + "\n")
 
             # Printa no log o estado atual
             self.__print_on_log("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
@@ -797,28 +819,30 @@ class LinearProgramming:
 
             # Chama branch and bound para a segunda restrição
             self.branch_and_bound(level + 1)
-            self.__print_on_log("Voltou do segundo B&B com o seguinte tableau e antes de repivotar para remover\n")
+
+            self.__print_on_log("Depois de voltar do Branch and Bound e antes de voltar para restrição original\n")
             self.__print_on_log(self.__to_string_tableau())
             self.__print_on_log(str(self.basis) + "\n")
-            self.__print_on_log(str(basis_before_new_simplex) + "\n")
 
-            # Repivoteia no para o estado quando adiciona a nova restrição e não performa simplex
-            for i in range(self.num_restrictions):
-                self.__pivot_tableau(i, basis_before_new_simplex[i])
-            self.basis = list(basis_before_new_simplex)
+            del self.tableau
+            del self.basis
+            self.tableau = np.copy(current_tableau)
+            self.basis = list(current_basis)
+            self.num_restrictions -= 1
+            self.num_variables_from_tableau -= 1
+            del current_tableau
 
-            # Remove restrição. Base teŕa um elemento a menos
-            self.__print_on_log("Depois de pivotar e antes de remover restrição\n")
+            self.__print_on_log("Depois de voltar para a restrição original e subir na árvore\n")
             self.__print_on_log(self.__to_string_tableau())
             self.__print_on_log(str(self.basis) + "\n")
-            self.remove_last_restriction()
 
-            # self.__print_on_log("Removeu segunda restrição\n")
-            # self.__print_on_log(self.__to_string_tableau())
-            # self.__print_on_log(str(self.basis) + "\n")
             return
         elif self.infeasible or self.objective_value <= self.integer_objective_value:
             # self.__print_on_log("É inviável\n")
+            # self.__print_on_log(str(self.infeasible) + "\n")
+            # self.__print_on_log(str(self.objective_value <= self.integer_objective_value) + "\n")
+            # self.__print_on_log(str(self.objective_value) + "\n")
+            # self.__print_on_log(str(self.integer_objective_value) + "\nsdf")
             self.infeasible = False
             return
 
